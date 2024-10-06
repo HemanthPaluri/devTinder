@@ -30,7 +30,7 @@ app.get('/user', async (req, res) => {
             res.send(users)
         }
     } catch {
-        console.log("Something wend wrong")
+        res.status(400).send("Something wend wrong")
     }
 });
 
@@ -41,7 +41,30 @@ app.get('/feed', async (req, res) => {
         res.send(users)
 
     } catch {
-        console.log("Something wend wrong when fetching all users")
+        res.status(400).send("Something went wrong when fetching all users")
+    }
+});
+
+app.delete('/user', async (req, res) => {
+    const userId = req.body.userId;
+    try {
+        const user = await User.findByIdAndDelete(userId)
+        res.send('User deleted successful')
+    }  catch {
+        res.status(400).send("Something wend wrong when deleting users")
+    }
+});
+
+// Update data of the user by userId
+app.patch('/user', async (req, res) => {
+    const userId = req.body.userId;
+    const data = req.body;
+
+    try {
+        await User.findByIdAndUpdate({_id: userId}, data);
+        res.send('Updated successful')
+    } catch {
+        res.status(400).send("Something wend wrong when updating users")
     }
 });
 
