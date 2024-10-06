@@ -3,13 +3,11 @@ const connectDB = require('./config/database');
 const User = require('./models/user');
 const app = express();
 
+app.use(express.json())
+
 app.post('/signup', async (req, res) => {
-    const user = new User({
-        firstName: 'Virat',
-        lastName: 'Kohli',
-        emailId: 'virat@paluri.com',
-        password: 'Virat!123'
-    })
+
+    const user = new User(req.body);
 
     try {
         await user.save();
@@ -18,6 +16,34 @@ app.post('/signup', async (req, res) => {
         res.status(500).send("User Creation failed:", err.message);
     }
 })
+
+app.get('/user', async (req, res) => {
+
+    const userEmailId = req.body.emailId
+
+    try{
+        const users = await User.find({emailId: userEmailId});
+
+        if(users.length === 0 ){
+            res.status(400).send("User not found")
+        } else {
+            res.send(users)
+        }
+    } catch {
+        console.log("Something wend wrong")
+    }
+});
+
+// Feed API - GET Feed - get all the users from users database
+app.get('/feed', async (req, res) => {
+    try{
+        const users = await User.find({});
+        res.send(users)
+
+    } catch {
+        console.log("Something wend wrong when fetching all users")
+    }
+});
 
 connectDB()
     .then(() => {
