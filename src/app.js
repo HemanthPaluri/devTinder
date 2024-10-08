@@ -8,12 +8,12 @@ app.use(express.json())
 app.post('/signup', async (req, res) => {
 
     const user = new User(req.body);
-
     try {
         await user.save();
         res.send("User Added Successfully");
     } catch (err) {
-        res.status(500).send("User Creation failed:", err.message);
+        console.log(err.message)
+        res.status(500).send("User Creation failed:");
     }
 })
 
