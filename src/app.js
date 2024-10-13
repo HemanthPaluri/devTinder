@@ -1,11 +1,18 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const validator = require('validator');
+
 const connectDB = require('./config/database');
 const User = require('./models/user');
-const app = express();
 const {validateSignUpData} = require('./utils/validation');
-const bcrypt = require('bcrypt');
+const {userAuth} = require('./middlewares/auth');
+
+const app = express();
 
 app.use(express.json())
+app.use(cookieParser())
 
 app.post('/signup', async (req, res) => {
     try{
@@ -33,18 +40,22 @@ app.post('/signup', async (req, res) => {
 })
 
 app.post('/login', async (req, res) => {
+    console.log('hit to login')
     try {
         const {emailId, password} = req.body
         if(!validator.isEmail(emailId)){
             throw new Error('Not a valid email address')
         }
-        const user = await User.findOne(emailId);
+        const user = await User.findOne({emailId: emailId});
         if(!user) {
             res.status(400).send('Invalid credentials')
         }
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if(isPasswordValid) {
+            const token = jwt.sign({_id: user._id}, "Dev@Tinder$790");
+
+            res.cookie("token", token);
             res.status(200).send('Logged in successful')
         } else {
             throw new Error ('Invalid credentials');
@@ -53,6 +64,17 @@ app.post('/login', async (req, res) => {
     }  catch (err) {
         res.status(500).send("User Creation failed:" + err.message);
     }
+});
+
+app.get('/profile', userAuth, async (req, res) => {
+    try {
+
+        res.status(200).send(req.user);
+
+    } catch (err) {
+        res.status(500).send("User Creation failed:" + err.message);
+    }
+
 });
 
 app.get('/user', async (req, res) => {
